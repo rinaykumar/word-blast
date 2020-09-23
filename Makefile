@@ -34,7 +34,7 @@
 #
 
 
-ROOTNAME=<last>_<first>_HW
+ROOTNAME=kumar_rinay_HW
 HW=4
 FOPTION=_main
 RUNOPTIONS=WarAndPeace.txt 4

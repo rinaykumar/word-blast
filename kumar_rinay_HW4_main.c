@@ -1,3 +1,16 @@
+/**************************************************************
+* Class:  CSC-415-01 Fall 2020
+* Name: Rinay Kumar
+* Student ID: 913859133
+* GitHub ID: rinaykumar
+* Project: Assignment 4 – Word Blast
+*
+* File: kumar_rinay_HW4_main.c
+*
+* Description:  
+*
+**************************************************************/
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
