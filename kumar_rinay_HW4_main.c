@@ -25,9 +25,14 @@
 #include <string.h>
 
 #define MAX_SIZE 2000
+#define WORD_SIZE 50
 
-// You may find this Useful
+// Very Useful
 char * delim = "\"\'.“”‘’?:;-,—*($%)! \t\n\x0A\r";
+
+int count = 0;
+int initFlag = 0;
+pthread_mutex_t lock;
 
 typedef struct WordsAndCount {
     char * word;
@@ -35,14 +40,10 @@ typedef struct WordsAndCount {
 } WordsAndCount;
 
 struct WordsAndCount wordArray[MAX_SIZE];
-char * tokens;
-pthread_mutex_t lock;
-int initFlag = 0;
-int count = 0;
 
 void initWordArray() {
     for (int i = 0; i < MAX_SIZE; i++) {
-        wordArray[i].word = malloc(MAX_SIZE);
+        wordArray[i].word = malloc(WORD_SIZE);
         wordArray[i].count = 0;
     }
     initFlag = 1;
@@ -70,7 +71,7 @@ void *wordFunc(void *ptr) {
             }
             if (res != 0) {
                 if (count < MAX_SIZE) {
-                    wordArray[count].word = token;
+                    strcpy(wordArray[count].word, token);
                     wordArray[count].count++;
                     count++;
                 }
@@ -86,18 +87,16 @@ int main (int argc, char *argv[])
     {
     //***TO DO***  Look at arguments, open file, divide by threads
     //             Allocate and Initialize and storage structures
-
     int ret1, ret2, fd, fileSize, chunkSize;
     char * buffer;
     int numOfThreads = strtol(argv[2], NULL, 10);
-    tokens = malloc(MAX_SIZE);
+    
+    if (initFlag == 0) {
+        initWordArray();
+    }
     
     if (ret1 = pthread_mutex_init(&lock, NULL)) {
         printf("ERROR: Mutex init failed [%d]\n", ret1);
-    }
-
-    if (initFlag == 0) {
-        initWordArray();
     }
     
     fd = open(argv[1], O_RDONLY);
@@ -117,6 +116,7 @@ int main (int argc, char *argv[])
 
     clock_gettime(CLOCK_REALTIME, &startTime);
     //**************************************************************
+    
     // *** TO DO ***  start your thread processing
     //                wait for the threads to finish
     pthread_t thread[numOfThreads];
@@ -175,6 +175,10 @@ int main (int argc, char *argv[])
     // ***TO DO *** cleanup
     pthread_mutex_destroy(&lock);
     free(buffer);
+
+    for (int i = 0; i < MAX_SIZE; i++) {
+        free(wordArray[i].word);
+    }
 
     return 0;
     }
