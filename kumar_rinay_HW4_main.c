@@ -25,7 +25,7 @@
 #include <string.h>
 
 #define MAX_SIZE 2000
-#define WORD_SIZE 50
+#define WORD_SIZE 10
 
 // Very Useful
 char * delim = "\"\'.“”‘’?:;-,—*($%)! \t\n\x0A\r";
@@ -127,7 +127,7 @@ int main (int argc, char *argv[])
         void *ptr = buffer;
 
         if (ret2 = pthread_create(&thread[i], NULL, &wordFunc, (void*) ptr)) {
-            printf("ERROR: Thread creation failed: %d\n", ret2);
+            printf("ERROR: Thread creation failed [%d]\n", ret2);
             exit(EXIT_FAILURE);
         }
     }
@@ -173,6 +173,7 @@ int main (int argc, char *argv[])
     //**************************************************************
 
     // ***TO DO *** cleanup
+    close(fd);
     pthread_mutex_destroy(&lock);
     free(buffer);
 
