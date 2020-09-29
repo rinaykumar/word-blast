@@ -32,6 +32,7 @@ char * delim = "\"\'.“”‘’?:;-,—*($%)! \t\n\x0A\r";
 
 int count = 0;
 int initFlag = 0;
+int fd, chunkSize;
 pthread_mutex_t lock;
 
 typedef struct WordsAndCount {
@@ -50,45 +51,43 @@ void initWordArray() {
 }
 
 void *wordFunc(void *ptr) {  
-    pthread_mutex_lock(&lock);
-    
     int res;
-    char * buff;
+    char * buffer;
     char * token;
     
-    buff = (char *)ptr;
-    token = strtok(buff, delim);
+    buffer = malloc(chunkSize);
+    read(fd, buffer, chunkSize);
 
-    while (token != NULL) {       
+    while (token = strtok_r(buffer, delim, &buffer)) {       
         if ((int)strlen(token) > 5) {   
             // Check if token already in wordArray
             for (int i = 0; i < MAX_SIZE; i++) {
-                res = strcmp(wordArray[i].word, token);
+                res = strcasecmp(wordArray[i].word, token);
                 if (res == 0) {
+                    pthread_mutex_lock(&lock);
                     wordArray[i].count++;
+                    pthread_mutex_unlock(&lock);
                     break;
                 } 
             }
             if (res != 0) {
                 if (count < MAX_SIZE) {
+                    pthread_mutex_lock(&lock);
                     strcpy(wordArray[count].word, token);
                     wordArray[count].count++;
+                    pthread_mutex_unlock(&lock);
                     count++;
                 }
             }
         }
-        token = strtok(NULL, delim);
     }
-
-    pthread_mutex_unlock(&lock);
 }
 
 int main (int argc, char *argv[])
     {
     //***TO DO***  Look at arguments, open file, divide by threads
     //             Allocate and Initialize and storage structures
-    int ret1, ret2, fd, fileSize, chunkSize;
-    char * buffer;
+    int ret1, ret2, fileSize;
     int numOfThreads = strtol(argv[2], NULL, 10);
     
     if (initFlag == 0) {
@@ -122,11 +121,7 @@ int main (int argc, char *argv[])
     pthread_t thread[numOfThreads];
 
     for (int i = 0; i < numOfThreads; i++) {
-        buffer = malloc(chunkSize);
-        read(fd, buffer, chunkSize);
-        void *ptr = buffer;
-
-        if (ret2 = pthread_create(&thread[i], NULL, &wordFunc, (void*) ptr)) {
+        if (ret2 = pthread_create(&thread[i], NULL, wordFunc, (void*) &i)) {
             printf("ERROR: Thread creation failed [%d]\n", ret2);
             exit(EXIT_FAILURE);
         }
@@ -175,7 +170,6 @@ int main (int argc, char *argv[])
     // ***TO DO *** cleanup
     close(fd);
     pthread_mutex_destroy(&lock);
-    free(buffer);
 
     for (int i = 0; i < MAX_SIZE; i++) {
         free(wordArray[i].word);
