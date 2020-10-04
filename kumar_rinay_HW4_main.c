@@ -32,6 +32,7 @@ char * delim = "\"\'.“”‘’?:;-,—*($%)! \t\n\x0A\r";
 
 int count = 0;
 int initFlag = 0;
+int leftOver = 0;
 int fd, chunkSize;
 pthread_mutex_t lock;
 
@@ -55,8 +56,8 @@ void *wordFunc(void *ptr) {
     char * buffer;
     char * token;
     
-    buffer = malloc(chunkSize);
-    read(fd, buffer, chunkSize);
+    buffer = malloc(chunkSize+leftOver);
+    read(fd, buffer, chunkSize+leftOver);
 
     while (token = strtok_r(buffer, delim, &buffer)) {       
         if ((int)strlen(token) > 5) {   
@@ -121,6 +122,9 @@ int main (int argc, char *argv[])
     pthread_t thread[numOfThreads];
 
     for (int i = 0; i < numOfThreads; i++) {
+        if (i == numOfThreads-1) {
+            leftOver = fileSize % numOfThreads;
+        }
         if (ret2 = pthread_create(&thread[i], NULL, wordFunc, (void*) &i)) {
             printf("ERROR: Thread creation failed [%d]\n", ret2);
             exit(EXIT_FAILURE);
