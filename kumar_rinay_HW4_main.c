@@ -36,13 +36,16 @@ int leftOver = 0;
 int fd, chunkSize;
 pthread_mutex_t lock;
 
+// Data structure to conatin word and word frequency
 typedef struct WordsAndCount {
     char * word;
     int count;
 } WordsAndCount;
 
+// Global array of structures for up to MAX_SIZE words
 struct WordsAndCount wordArray[MAX_SIZE];
 
+// Initialize array of structures
 void initWordArray() {
     for (int i = 0; i < MAX_SIZE; i++) {
         wordArray[i].word = malloc(WORD_SIZE);
@@ -51,17 +54,22 @@ void initWordArray() {
     initFlag = 1;
 }
 
+// Thread function called by each thread to process file in chunks
 void *wordFunc(void *ptr) {  
     int res;
     char * buffer;
     char * token;
     
+    // Allocate buffer with chunkSize + leftOver
     buffer = malloc(chunkSize+leftOver);
+
+    // Read into buffer
     read(fd, buffer, chunkSize+leftOver);
 
+    // Tokenize with strtok_r and loop through buffer
     while (token = strtok_r(buffer, delim, &buffer)) {       
         if ((int)strlen(token) > 5) {   
-            // Check if token already in wordArray
+            // Check if token already in wordArray, increase count if yes
             for (int i = 0; i < MAX_SIZE; i++) {
                 res = strcasecmp(wordArray[i].word, token);
                 if (res == 0) {
@@ -71,6 +79,7 @@ void *wordFunc(void *ptr) {
                     break;
                 } 
             }
+            // If token not in wordArray, add and increase count
             if (res != 0) {
                 if (count < MAX_SIZE) {
                     pthread_mutex_lock(&lock);
@@ -91,21 +100,26 @@ int main (int argc, char *argv[])
     int ret1, ret2, fileSize;
     int numOfThreads = strtol(argv[2], NULL, 10);
     
+    // Initialize wordArray
     if (initFlag == 0) {
         initWordArray();
     }
     
+    // Initialize mutex lock
     if (ret1 = pthread_mutex_init(&lock, NULL)) {
         printf("ERROR: Mutex init failed [%d]\n", ret1);
     }
     
+    // Open file
     fd = open(argv[1], O_RDONLY);
 
+    // Get file size with lseek
     fileSize = lseek(fd, 0, SEEK_END);
 
-    // Set fd back to beginning
+    // Set file position back to beginning
     lseek(fd, 0, SEEK_SET);
 
+    // Chunk size is file size divided by number of threads
     chunkSize = fileSize / numOfThreads;
 
     //**************************************************************
@@ -121,7 +135,9 @@ int main (int argc, char *argv[])
     //                wait for the threads to finish
     pthread_t thread[numOfThreads];
 
+    // Create threads in a loop to run in parallel
     for (int i = 0; i < numOfThreads; i++) {
+        // For last thread, adjust leftOver with bytes remaining
         if (i == numOfThreads-1) {
             leftOver = fileSize % numOfThreads;
         }
@@ -131,6 +147,7 @@ int main (int argc, char *argv[])
         }
     }
 
+    // Join threads after they run
     for (int i = 0; i < numOfThreads; i++) {
         pthread_join(thread[i], NULL);
     }
@@ -138,6 +155,7 @@ int main (int argc, char *argv[])
     // ***TO DO *** Process TOP 10 and display
     WordsAndCount temp;
 
+    // Sort wordArray in decreasing order
     for (int i = 0; i < MAX_SIZE; i++) {
         for (int j = i+1; j < MAX_SIZE; j++) {
             if (wordArray[i].count < wordArray[j].count) {
@@ -148,6 +166,7 @@ int main (int argc, char *argv[])
         }
     }
 
+    // Output top 10 6+ character words
     printf("\n\n");
     printf("Word Frequency Count on %s with %d threads\n", argv[1], numOfThreads);
     printf("Printing top 10 words 6 characters or more.\n");
@@ -172,9 +191,13 @@ int main (int argc, char *argv[])
     //**************************************************************
 
     // ***TO DO *** cleanup
+    // Close file
     close(fd);
+
+    // Destory mutex lock
     pthread_mutex_destroy(&lock);
 
+    // Free wordArray buffers
     for (int i = 0; i < MAX_SIZE; i++) {
         free(wordArray[i].word);
     }
