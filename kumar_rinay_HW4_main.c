@@ -24,15 +24,15 @@
 #include <pthread.h>
 #include <string.h>
 
-#define MAX_SIZE 2000
-#define WORD_SIZE 10
+#define MAX_SIZE 2000 // Number of words to hold in shared array
+#define WORD_SIZE 10  // Size of each word
 
 // Very Useful
 char * delim = "\"\'.“”‘’?:;-,—*($%)! \t\n\x0A\r";
 
-int count = 0;
-int initFlag = 0;
-int leftOver = 0;
+int count = 0;     // To keep track of elements in array
+int initFlag = 0;  // For array initialization
+int leftOver = 0;  // For the remaining bytes to use with last pthread
 int fd, chunkSize;
 pthread_mutex_t lock;
 
@@ -68,24 +68,25 @@ void *wordFunc(void *ptr) {
 
     // Tokenize with strtok_r and loop through buffer
     while (token = strtok_r(buffer, delim, &buffer)) {       
+        // Check if token is 6+ characters
         if ((int)strlen(token) > 5) {   
             // Check if token already in wordArray, increase count if yes
             for (int i = 0; i < MAX_SIZE; i++) {
                 res = strcasecmp(wordArray[i].word, token);
                 if (res == 0) {
-                    pthread_mutex_lock(&lock);
+                    pthread_mutex_lock(&lock);   // Start critical section
                     wordArray[i].count++;
-                    pthread_mutex_unlock(&lock);
+                    pthread_mutex_unlock(&lock); // End critical section
                     break;
                 } 
             }
             // If token not in wordArray, add and increase count
             if (res != 0) {
                 if (count < MAX_SIZE) {
-                    pthread_mutex_lock(&lock);
+                    pthread_mutex_lock(&lock);            // Start critical section
                     strcpy(wordArray[count].word, token);
                     wordArray[count].count++;
-                    pthread_mutex_unlock(&lock);
+                    pthread_mutex_unlock(&lock);          // End critical section
                     count++;
                 }
             }
@@ -98,7 +99,7 @@ int main (int argc, char *argv[])
     //***TO DO***  Look at arguments, open file, divide by threads
     //             Allocate and Initialize and storage structures
     int ret1, ret2, fileSize;
-    int numOfThreads = strtol(argv[2], NULL, 10);
+    int numOfThreads = strtol(argv[2], NULL, 10);  // Number of threads from args
     
     // Initialize wordArray
     if (initFlag == 0) {
@@ -133,6 +134,7 @@ int main (int argc, char *argv[])
     
     // *** TO DO ***  start your thread processing
     //                wait for the threads to finish
+    // Declare pthread
     pthread_t thread[numOfThreads];
 
     // Create threads in a loop to run in parallel
@@ -141,6 +143,7 @@ int main (int argc, char *argv[])
         if (i == numOfThreads-1) {
             leftOver = fileSize % numOfThreads;
         }
+        // Create thread with some error checking
         if (ret2 = pthread_create(&thread[i], NULL, wordFunc, (void*) &i)) {
             printf("ERROR: Thread creation failed [%d]\n", ret2);
             exit(EXIT_FAILURE);
