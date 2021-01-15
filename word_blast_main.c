@@ -1,11 +1,5 @@
 /**************************************************************
-* Class:  CSC-415-01 Fall 2020
-* Name: Rinay Kumar
-* Student ID: 913859133
-* GitHub ID: rinaykumar
-* Project: Assignment 4 – Word Blast
-*
-* File: kumar_rinay_HW4_main.c
+* Word Blast
 *
 * Description: This program takes a file from the command line
 * and n number of threads, then splits the data into n chunks
