@@ -24,7 +24,7 @@ Requires a Linux distro such as Ubuntu and gcc compiler.
 # cd into word-blast folder and make for default 4 threads and WarAndPeace.txt
 make run
 
-# specify text file and number of threads in command arguments, for example TextFile and 8 threads
+# specify text file and number of threads in command arguments, ie TextFile and 8 threads
 make run ./word_blast_main TextFile.txt 8
 
 # see the word frequency and time the program took to complete
