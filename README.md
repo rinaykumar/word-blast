@@ -1,6 +1,7 @@
 # Word Blast
-![GitHub](https://img.shields.io/github/license/rinaykumar/word-blast)
+![Travis (.com)](https://img.shields.io/travis/com/rinaykumar/word-blast)
 ![GitHub top language](https://img.shields.io/github/languages/top/rinaykumar/word-blast)
+![GitHub](https://img.shields.io/github/license/rinaykumar/word-blast)
 
 <img src="img/1.png" width="800">
 
